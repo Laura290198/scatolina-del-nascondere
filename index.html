@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Scatolina Misteriosa</title>
+  <!-- Importa Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Importa font giocoso per bambini -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      /* Sfondo a pois allegro */
+      background-color: #e0f2fe;
+      background-image: radial-gradient(#bae6fd 20%, transparent 20%), radial-gradient(#bae6fd 20%, transparent 20%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+    }
+
+    /* Animazioni divertenti */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) rotate(0); }
+      20% { transform: translateX(-15px) rotate(-5deg); }
+      40% { transform: translateX(15px) rotate(5deg); }
+      60% { transform: translateX(-15px) rotate(-5deg); }
+      80% { transform: translateX(15px) rotate(5deg); }
+    }
+    .animate-shake {
+      animation: shake 0.5s ease-in-out infinite;
+    }
+    
+    @keyframes bounceIn {
+      0% { transform: scale(0.1); opacity: 0; }
+      60% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-bounce-in {
+      animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    }
+
+    /* Gestione apertura coperchi */
+    .lid-left-open { transform: translateY(-105%) rotate(-2deg); }
+    .lid-right-open { transform: translateY(-105%) rotate(2deg); }
+    .lid-closed { transform: translateY(0) rotate(0); }
+
+    /* Stile delle palline lucide (Effetto biglia) */
+    .ball-shine {
+      position: relative;
+    }
+    .ball-shine::after {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 15%;
+      width: 30%;
+      height: 30%;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      filter: blur(1px);
+    }
+    
+    /* Pulsanti 3D super spessi */
+    .btn-3d {
+      transition: all 0.1s ease;
+    }
+    .btn-3d:active {
+      transform: translateY(8px);
+      box-shadow: none !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 selection:bg-none text-gray-800" onload="initGame()">
+
+  <!-- Titolo Decorato -->
+  <div class="text-center mb-8 animate-bounce-in">
+    <h1 class="text-4xl md:text-6xl font-bold text-blue-600 drop-shadow-[0_4px_0_rgba(255,255,255,1)]" style="-webkit-text-stroke: 2px white;">
+      ✨ La Scatolina Misteriosa ✨
+    </h1>
+  </div>
+
+  <div class="flex flex-col items-center w-full max-w-4xl">
+    
+    <!-- Contenitore della Scatolina -->
+    <div id="box-wrapper" class="relative mb-12 mt-4 transition-transform z-10">
+      <!-- Corpo principale della scatola di plastica -->
+      <div class="w-[320px] h-[200px] md:w-[480px] md:h-[260px] bg-yellow-400 border-[12px] border-yellow-500 rounded-3xl shadow-[0_20px_0_#b45309,0_25px_20px_rgba(0,0,0,0.3)] flex relative overflow-visible z-0">
+        
+        <!-- Divisorio centrale -->
+        <div class="absolute left-1/2 top-0 w-4 h-full bg-yellow-600 -translate-x-1/2 z-10 shadow-[4px_0_8px_rgba(0,0,0,0.2)]"></div>
+
+        <!-- Scomparto Sinistro (Interno scuro per dare profondità) -->
+        <div id="left-compartment" class="w-1/2 h-full relative overflow-hidden bg-yellow-900/10 rounded-l-2xl p-2 shadow-inner"></div>
+
+        <!-- Scomparto Destro -->
+        <div id="right-compartment" class="w-1/2 h-full relative overflow-hidden bg-yellow-900/10 rounded-r-2xl p-2 shadow-inner"></div>
+
+        <!-- Coperchi -->
+        <div class="absolute inset-0 w-full h-full -mx-[12px] -my-[12px] pointer-events-none overflow-hidden rounded-3xl z-20">
+           <!-- Coperchio Sinistro -->
+          <div id="left-lid" class="absolute top-0 left-0 w-1/2 h-full bg-yellow-400 border-[8px] border-yellow-500 shadow-[inset_0_5px_15px_rgba(255,255,255,0.4)] transition-transform duration-700 ease-in-out origin-top rounded-l-3xl flex items-center justify-center">
+            <!-- Dettaglio cerniera/chiusura -->
+            <div class="w-12 h-12 rounded-full bg-yellow-500 shadow-inner flex items-center justify-center">
+              <div class="w-6 h-6 rounded-full bg-yellow-300"></div>
+            </div>
+          </div>
+          <!-- Coperchio Destro -->
+          <div id="right-lid" class="absolute top-0 right-0 w-1/2 h-full bg-yellow-400 border-[8px] border-yellow-500 shadow-[inset_0_5px_15px_rgba(255,255,255,0.4)] transition-transform duration-700 ease-in-out origin-top rounded-r-3xl flex items-center justify-center">
+            <div class="w-12 h-12 rounded-full bg-yellow-500 shadow-inner flex items-center justify-center">
+              <div class="w-6 h-6 rounded-full bg-yellow-300"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Area dei controlli interattivi -->
+    <div id="controls-container" class="w-full max-w-2xl bg-white border-4 border-white rounded-[3rem] p-6 md:p-8 shadow-[0_15px_30px_rgba(0,0,0,0.1)] text-center min-h-[240px] flex flex-col justify-center items-center relative z-20">
+      <!-- I controlli verranno generati qui via JavaScript -->
+    </div>
+  </div>
+
+  <script>
+    let phase = 1;
+    let leftTotal = 5, leftReds = 5;
+    let rightTotal = 5, rightReds = 0;
+    let lidLeftOpen = true, lidRightOpen = true;
+    let isShaking = false;
+    let revealedSide = null;
+    let userGuess = null;
+    let feedback = 'none';
+
+    // Colori pastello per il tastierino numerico per renderlo più giocoso
+    const btnColors = [
+      'bg-red-400 shadow-[0_6px_0_#b91c1c]', 'bg-orange-400 shadow-[0_6px_0_#c2410c]', 
+      'bg-amber-400 shadow-[0_6px_0_#b45309]', 'bg-lime-400 shadow-[0_6px_0_#4d7c0f]', 
+      'bg-green-400 shadow-[0_6px_0_#15803d]', 'bg-emerald-400 shadow-[0_6px_0_#047857]', 
+      'bg-teal-400 shadow-[0_6px_0_#0f766e]', 'bg-cyan-400 shadow-[0_6px_0_#0e7490]', 
+      'bg-sky-400 shadow-[0_6px_0_#0369a1]', 'bg-blue-400 shadow-[0_6px_0_#1d4ed8]', 
+      'bg-indigo-400 shadow-[0_6px_0_#4338ca]'
+    ];
+
+    function initGame() {
+      resetBallsToStart();
+      renderAll();
+    }
+
+    function resetBallsToStart() {
+      leftTotal = 5; leftReds = 5; 
+      rightTotal = 5; rightReds = 0;
+      lidLeftOpen = true; lidRightOpen = true;
+      revealedSide = null;
+      userGuess = null;
+      feedback = 'none';
+      phase = 1;
+    }
+
+    function handleCloseBox() {
+      phase = 2;
+      lidLeftOpen = false;
+      lidRightOpen = false;
+      renderAll();
+      setTimeout(() => { phase = 3; renderAll(); }, 1000);
+    }
+
+    function handleShakeBox() {
+      isShaking = true;
+      renderAll();
+      
+      const newLeftTotal = Math.floor(Math.random() * 11); 
+      const newRightTotal = 10 - newLeftTotal;
+      const minRedsLeft = Math.max(0, newLeftTotal - 5);
+      const maxRedsLeft = Math.min(5, newLeftTotal);
+      const newLeftReds = Math.floor(Math.random() * (maxRedsLeft - minRedsLeft + 1)) + minRedsLeft;
+      const newRightReds = 5 - newLeftReds;
+
+      leftTotal = newLeftTotal; leftReds = newLeftReds;
+      rightTotal = newRightTotal; rightReds = newRightReds;
+
+      setTimeout(() => {
+        isShaking = false;
+        phase = 4;
+        openOneSide();
+        renderAll();
+      }, 1500);
+    }
+
+    function openOneSide() {
+      revealedSide = Math.random() > 0.5 ? 'left' : 'right';
+      if (revealedSide === 'left') lidLeftOpen = true;
+      else lidRightOpen = true;
+
+      setTimeout(() => { phase = 5; renderAll(); }, 1200);
+    }
+
+    function selectNumber(num) {
+      userGuess = num;
+      feedback = 'none';
+      renderControls();
+    }
+
+    function handleConfirmGuess() {
+      if (userGuess === null) return;
+      const hiddenTotal = revealedSide === 'left' ? rightTotal : leftTotal;
+      if (userGuess === hiddenTotal) {
+        feedback = 'correct';
+        phase = 6;
+        lidLeftOpen = true;
+        lidRightOpen = true;
+      } else {
+        feedback = 'incorrect';
+      }
+      renderAll();
+    }
+
+    function renderAll() {
+      updateBoxVisuals();
+      renderControls();
+    }
+
+    function updateBoxVisuals() {
+      const boxWrapper = document.getElementById('box-wrapper');
+      if (isShaking) boxWrapper.classList.add('animate-shake');
+      else boxWrapper.classList.remove('animate-shake');
+
+      const leftLid = document.getElementById('left-lid');
+      const rightLid = document.getElementById('right-lid');
+      
+      leftLid.className = `absolute top-0 left-0 w-1/2 h-full bg-yellow-400 border-[8px] border-yellow-500 shadow-[inset_0_5px_15px_rgba(255,255,255,0.4)] transition-transform duration-700 ease-in-out origin-top rounded-l-3xl flex items-center justify-center z-30 ${lidLeftOpen ? 'lid-left-open' : 'lid-closed'}`;
+      rightLid.className = `absolute top-0 right-0 w-1/2 h-full bg-yellow-400 border-[8px] border-yellow-500 shadow-[inset_0_5px_15px_rgba(255,255,255,0.4)] transition-transform duration-700 ease-in-out origin-top rounded-r-3xl flex items-center justify-center z-30 ${lidRightOpen ? 'lid-right-open' : 'lid-closed'}`;
+
+      drawBalls('left-compartment', leftTotal, leftReds);
+      drawBalls('right-compartment', rightTotal, rightReds);
+    }
+
+    function drawBalls(containerId, total, reds) {
+      const whites = total - reds;
+      let balls = [];
+      for (let i = 0; i < reds; i++) balls.push('red');
+      for (let i = 0; i < whites; i++) balls.push('white');
+      
+      balls.sort((a, b) => (a === b ? 0 : a === 'red' ? -1 : 1));
+
+      let html = `<div class="flex flex-wrap justify-center content-center gap-2 w-full h-full p-2">`;
+      balls.forEach((color) => {
+        let bg = color === 'red' ? 'bg-red-500 border-red-700 shadow-[inset_-4px_-4px_8px_rgba(150,0,0,0.6),2px_2px_4px_rgba(0,0,0,0.3)]' : 'bg-gray-100 border-gray-300 shadow-[inset_-4px_-4px_8px_rgba(150,150,150,0.6),2px_2px_4px_rgba(0,0,0,0.3)]';
+        html += `<div class="ball-shine w-10 h-10 md:w-12 md:h-12 rounded-full border-2 ${bg}"></div>`;
+      });
+      html += `</div>`;
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    function renderControls() {
+      const container = document.getElementById('controls-container');
+      let html = '';
+
+      if (phase === 1) {
+        html = `
+          <div class="space-y-6 animate-bounce-in text-center">
+            <p class="text-2xl md:text-3xl font-bold text-gray-700">
+              Guarda! Ci sono <span class="text-blue-600 text-4xl">10</span> palline in tutto.<br/> 5 rosse e 5 bianche.
+            </p>
+            <button onclick="handleCloseBox()" class="btn-3d bg-blue-500 hover:bg-blue-400 text-white text-3xl font-bold py-4 px-10 rounded-full shadow-[0_8px_0_#1e3a8a] mt-4 border-4 border-white">
+              Chiudi la scatolina! 👇
+            </button>
+          </div>
+        `;
+      } 
+      else if (phase === 2) {
+        html = `<p class="text-3xl font-bold text-blue-500 animate-pulse">Chiudiamo... 🫣</p>`;
+      }
+      else if (phase === 3) {
+        html = `
+          <div class="space-y-6 animate-bounce-in text-center">
+            <p class="text-2xl md:text-3xl font-bold text-gray-700">Perfetto! Ora mischiamo tutto!</p>
+            <button onclick="handleShakeBox()" class="btn-3d bg-purple-500 hover:bg-purple-400 text-white text-3xl font-bold py-4 px-10 rounded-full shadow-[0_8px_0_#4c1d95] mt-4 border-4 border-white">
+              Agita forte! 🌪️
+            </button>
+          </div>
+        `;
+      }
+      else if (phase === 4) {
+        html = `<p class="text-3xl font-bold text-purple-500 animate-pulse">Vediamo un po'... 👀</p>`;
+      }
+      else if (phase === 5) {
+        let buttonsHtml = '';
+        for (let i = 0; i <= 10; i++) {
+          const isSelected = userGuess === i;
+          // Selezionato diventa grigio opaco per indicare la scelta, gli altri restano colorati
+          const bgClass = isSelected ? 'bg-gray-300 text-gray-500 shadow-[0_0_0_#9ca3af] translate-y-[6px]' : `${btnColors[i]} text-white hover:brightness-110`;
+          
+          buttonsHtml += `<button onclick="selectNumber(${i})" class="btn-3d w-14 h-14 md:w-16 md:h-16 text-3xl font-bold rounded-2xl border-2 border-white ${bgClass} flex items-center justify-center pb-1">${i}</button>`;
+        }
+
+        let feedbackHtml = '';
+        if (feedback === 'incorrect') {
+          feedbackHtml = `<p class="text-red-500 text-2xl font-bold animate-bounce mt-4">Ops! Riprova! Le palline in tutto sono 10! 💡</p>`;
+        }
+
+        const confirmBtnClass = userGuess === null ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none' : 'btn-3d bg-green-500 hover:bg-green-400 text-white shadow-[0_8px_0_#14532d] border-4 border-white';
+
+        html = `
+          <div class="space-y-4 w-full animate-bounce-in flex flex-col items-center">
+            <p class="text-2xl md:text-3xl font-bold text-gray-800">Quante palline sono nascoste?</p>
+            <div class="flex flex-wrap justify-center gap-3 w-full max-w-xl my-4">
+              ${buttonsHtml}
+            </div>
+            ${feedbackHtml}
+            <button onclick="handleConfirmGuess()" ${userGuess === null ? 'disabled' : ''} class="text-3xl font-bold py-3 px-10 rounded-full transition-all ${confirmBtnClass}">
+              CONFERMA ✔️
+            </button>
+          </div>
+        `;
+      }
+      else if (phase === 6) {
+        const visibleCount = revealedSide === 'left' ? leftTotal : rightTotal;
+        const hiddenCount = revealedSide === 'left' ? rightTotal : leftTotal;
+        
+        html = `
+          <div class="space-y-4 animate-bounce-in flex flex-col items-center">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-green-500 mb-2 drop-shadow-md">
+              🎉 BRAVISSIMO! 🎉
+            </h2>
+            <div class="bg-yellow-50 border-4 border-yellow-300 rounded-3xl p-4 md:p-6 mb-2 shadow-sm">
+              <p class="text-2xl md:text-3xl font-bold text-gray-700">
+                <span class="text-blue-500 text-4xl">10</span> in tutto <br/> - <span class="text-blue-500 text-4xl">${visibleCount}</span> visibili <br/> = <span class="text-red-500 text-5xl ml-2">${hiddenCount}</span> nascoste!
+              </p>
+            </div>
+            <button onclick="initGame()" class="btn-3d bg-orange-500 hover:bg-orange-400 text-white text-3xl font-bold py-4 px-10 rounded-full shadow-[0_8px_0_#9a3412] border-4 border-white mt-2">
+              Gioca Ancora! 🔄
+            </button>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
